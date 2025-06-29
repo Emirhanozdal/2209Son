@@ -405,7 +405,8 @@ def main():
     video_base64 = load_local_file_as_base64('background.mp4')
     logo_path = 'logo.png' 
 
-    rocket_cursor = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" transform=\"rotate(315)\"><line x1=\"22\" y1=\"2\" x2=\"11\" y2=\"13\"></line><polygon points=\"22 2 15 22 11 13 2 9 22 2\"></polygon></svg>'), auto"
+    # Rocket cursor SVG (emoji-based, base64 not needed for SVG text)
+    rocket_cursor = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" style=\"font-size:24px;\"><text y=\"24\">🚀</text></svg>'), auto"
 
     main_styles = f"""
         <style>
