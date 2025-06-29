@@ -136,7 +136,7 @@ def format_results_for_download(results: Dict[str, ValidationResult]) -> str:
     return "\n".join(report_lines)
 
 # ==============================================================================
-# ANA DOĞRULAYICI SINIFI (MANTIKSAL HATALAR DÜZELTİLDİ)
+# ANA DOĞRULAYICI SINIFI
 # ==============================================================================
 class TubitakFormValidator:
     def __init__(self):
@@ -195,8 +195,6 @@ class TubitakFormValidator:
     def _get_field(self, text: str, pattern: str) -> Optional[str]:
         match = re.search(pattern, text, re.IGNORECASE)
         return match.group(1).strip() if match and match.group(1) else None
-
-    # --- BÖLÜM BAZLI DOĞRULAMA FONKSİYONLARI (DÜZELTİLDİ) ---
 
     def validate_genel_bilgiler(self, section_text: str) -> ValidationResult:
         result = self._create_result("Genel Bilgiler")
@@ -327,7 +325,6 @@ class TubitakFormValidator:
         except Exception as e:
             result.errors.append(f"Format analizi sırasında bir hata oluştu: {e}")
 
-        # Proje Tipi Tespiti
         project_type = self._detect_project_type(full_text)
         if project_type:
             result.suggestions.append(f"Projenizin '{project_type}' alanında olduğu tahmin edilmektedir. Değerlendirmelerinizin bu alanın dinamiklerine uygun olduğundan emin olun.")
@@ -371,7 +368,6 @@ class TubitakFormValidator:
 
             sections = self.parse_document_sections(full_text)
             
-            # Doğrulama fonksiyonlarını tanımla
             validation_methods = {
                 "genel_bilgiler": self.validate_genel_bilgiler, "ozet": self.validate_ozet, "ozgun_deger": self.validate_ozgun_deger,
                 "amac_ve_hedefler": self.validate_amac_ve_hedefler, "yontem": self.validate_yontem, "is_zaman_cizelgesi": self.validate_is_zaman_cizelgesi,
@@ -379,16 +375,13 @@ class TubitakFormValidator:
             }
             results = {}
 
-            # Önce Genel Format'ı kontrol et
             results["format"] = self.validate_formatting(pdf_bytes, full_text)
 
-            # Her bölüm için ilgili doğrulama fonksiyonunu çalıştır
             for section_key, method in validation_methods.items():
                 section_text = sections.get(section_key)
                 if section_key in self.REQUIRED_SECTIONS and not section_text:
-                    pattern_str = self.MAIN_PATTERNS.get(section_key, "Bilinmeyen Desen")
                     results[section_key] = self._create_result(section_key)
-                    results[section_key].errors.append(f"Bu zorunlu bölüm belgede bulunamadı veya başlığı ('{pattern_str}') tanınamadı.")
+                    results[section_key].errors.append(f"Bu zorunlu bölüm belgede bulunamadı veya başlığı ('{self.MAIN_PATTERNS.get(section_key, '')}') tanınamadı.")
                 elif section_text:
                     results[section_key] = method(section_text)
             
@@ -397,7 +390,7 @@ class TubitakFormValidator:
             st.error("Belge analizi sırasında kritik bir hata oluştu."); st.code(traceback.format_exc()); return None
 
 # ==============================================================================
-# STREAMLIT ARAYÜZÜ (BAŞLIK STİLİ GÜNCELLENDİ)
+# STREAMLIT ARAYÜZÜ
 # ==============================================================================
 def main():
     st.set_page_config(page_title="TÜBİTAK Proje Ön Değerlendiricisi", layout="wide", initial_sidebar_state="collapsed", page_icon="🚀")
@@ -405,8 +398,8 @@ def main():
     video_base64 = load_local_file_as_base64('background.mp4')
     logo_path = 'logo.png' 
 
-    # Rocket cursor SVG (emoji-based, base64 not needed for SVG text)
-    rocket_cursor = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" style=\"font-size:24px;\"><text y=\"24\">🚀</text></svg>'), auto"
+    # ----- SADECE BU SATIR DEĞİŞTİRİLDİ -----
+    rocket_cursor = f"url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" style=\"font-size: 24px;\" transform=\"rotate(315)\"><text y=\"24\">🚀</text></svg>'), auto"
 
     main_styles = f"""
         <style>
@@ -414,11 +407,7 @@ def main():
             .stApp {{ background: linear-gradient(135deg, rgba(15, 20, 35, 0.85) 0%, rgba(25, 35, 65, 0.85) 100%); }}
             [data-testid="stAppViewContainer"] > .main {{ background: rgba(0, 0, 0, 0); backdrop-filter: blur(2px); }}
             html, body, .stApp, .stApp div, .stApp button, .stApp input, .stApp textarea {{ cursor: {rocket_cursor} !important; }}
-            /* DÜZELTME: Başlıktaki parlama efekti kaldırıldı, sadece renk ve font ayarlandı */
-            .main-title {{
-                font-size: 3.2em; font-weight: 800; text-align: center; margin-bottom: 20px;
-                color: #FFD700; /* Sadece altın rengi */
-            }}
+            .main-title {{ font-size: 3.2em; font-weight: 800; text-align: center; margin-bottom: 20px; color: #FFD700; }}
             .sub-title {{ font-size: 1.4em; color: #E8F4FD; text-align: center; margin-bottom: 40px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); font-weight: 300; }}
             .column-header {{ font-size: 1.8em; font-weight: 700; color: #FFFFFF; padding: 15px 0; border-bottom: 3px solid rgba(255, 215, 0, 0.8); margin-bottom: 25px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); background: linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, transparent 100%); padding-left: 15px; border-radius: 5px; }}
             [data-testid="stFileUploader"] > div > div {{ background: rgba(30, 45, 80, 0.9) !important; border: 2px dashed rgba(255, 215, 0, 0.6) !important; border-radius: 15px !important; padding: 30px !important; text-align: center !important; transition: all 0.3s ease !important; }}
@@ -478,27 +467,18 @@ def main():
             error_sections = sum(1 for r in results.values() if r.errors)
             warning_sections = sum(1 for r in results.values() if r.warnings)
 
-            # YENİ ÖZELLİK: İndirme butonu
             report_data = format_results_for_download(results)
             st.download_button(
-               label="📄 Raporu (.txt) İndir",
-               data=report_data,
-               file_name="TUBITAK_2209A_On_Degerlendirme_Raporu.txt",
-               mime="text/plain"
+               label="📄 Raporu (.txt) İndir", data=report_data,
+               file_name="TUBITAK_2209A_On_Degerlendirme_Raporu.txt", mime="text/plain"
             )
 
-            st.markdown(
-                f"""
-                <div style='background: rgba(30, 45, 80, 0.9); padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #FFD700;'>
+            st.markdown(f"""<div style='background: rgba(30, 45, 80, 0.9); padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #FFD700;'>
                     <h4 style='color: #FFD700; margin-bottom: 15px;'>📊 Analiz Özeti</h4>
                     <p style='color: #FFCDD2; margin: 5px 0;'>🚨 <strong>Kritik Hata Bulunan Bölüm Sayısı:</strong> {error_sections}</p>
                     <p style='color: #FFE0B2; margin: 5px 0;'>⚠️ <strong>Uyarı Bulunan Bölüm Sayısı:</strong> {warning_sections}</p>
-                </div>
-                """, 
-                unsafe_allow_html=True
-            )
+                </div>""", unsafe_allow_html=True)
             
-            # Sonuçları sıralı göstermek için
             sorted_keys = list(results.keys())
             for key in sorted_keys:
                 result = results[key]
@@ -508,15 +488,12 @@ def main():
                 with st.expander(f"{icon} {result.section_name}", expanded=is_expanded):
                     if not result.errors and not result.warnings:
                          st.success("🎯 Bu bölümde önemli bir sorun veya uyarı tespit edilmedi. Harika iş!")
-                    
                     if result.errors:
                         st.error("**Kritik Hatalar (Mutlaka Düzeltilmeli):**")
                         for e in result.errors: st.write(f"  - {e}")
-                    
                     if result.warnings:
                         st.warning("**Önemli Uyarılar (Düzeltilmesi Güçlü Tavsiye Edilir):**")
                         for w in result.warnings: st.write(f"  - {w}")
-                    
                     if result.suggestions:
                         st.info("**İyileştirme Önerileri:**")
                         for s in result.suggestions: st.write(f"  - {s}")
