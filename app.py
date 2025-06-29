@@ -43,10 +43,20 @@ class ValidationResult:
 # ==============================================================================
 # YARDIMCI FONKSİYONLAR
 # ==============================================================================
+# YARDIMCI FONKSİYONLAR bölümündeki fonksiyonu bununla değiştirin.
 def display_pdf_from_bytes(pdf_bytes: bytes):
+    """
+    Bellekteki PDF byte verisini, tarayıcı engelleyicilerine karşı daha 
+    dirençli olabilen <embed> etiketi kullanarak gösterir.
+    """
     try:
         base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
-        pdf_display = f'<div style="height: 700px; border-radius: 15px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);"><iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="100%" type="application/pdf"></iframe></div>'
+        # iframe yerine <embed> etiketi kullanıyoruz.
+        pdf_display = f'''
+            <div style="height: 700px; border-radius: 15px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
+                <embed src="data:application/pdf;base64,{base64_pdf}" width="100%" height="100%" type="application/pdf">
+            </div>
+        '''
         st.markdown(pdf_display, unsafe_allow_html=True)
     except Exception as e:
         st.error(f"PDF görüntülenirken bir hata oluştu: {e}")
